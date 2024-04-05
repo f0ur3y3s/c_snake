@@ -11,24 +11,26 @@ int main (void)
         goto EXIT;
     }
 
+    term_clear();
+
     // game_t * p_game = game_init(BOARD_SIZE);
     game_t * p_game = game_init(20);
-
 
     if (NULL == p_game)
     {
         goto COOK_EXIT;
     }
 
-    system("clear");
-    game_print_tiles(p_game);
+    // system("clear");
+    // game_print_tiles(p_game);
 
     for (;;)
     {
-        if (game_tick(p_game))
-        {
-            game_print_tiles(p_game);
-        }
+        game_tick(p_game);
+        // if (game_tick(p_game))
+        // {
+            // game_print_tiles(p_game);
+        // }
 
         char chr[3] = { 0 };
 
@@ -68,7 +70,7 @@ int main (void)
         if (xy_delta.x != 0 || xy_delta.y != 0)
         {
             game_turn_player(p_game, xy_delta);
-            game_print_tiles(p_game);
+            // game_print_tiles(p_game);
         }
     }
 

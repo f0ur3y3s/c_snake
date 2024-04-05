@@ -1,6 +1,6 @@
 /**
  * @file sll.h
- * @author Daniel Chung (daniel.y.chung.mil@army.mil)
+ * @author Daniel Chung
  * @brief Threadsafe singly linked list
  * @version 0.1
  * @date 2024-03-06

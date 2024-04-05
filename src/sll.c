@@ -1,6 +1,6 @@
 /**
  * @file sll.c
- * @author Daniel Chung (daniel.y.chung.mil@army.mil)
+ * @author Daniel Chung
  * @brief Implementation of threadsafe singly linked list
  *
  * TODO: additional notes

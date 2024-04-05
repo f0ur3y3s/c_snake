@@ -10,6 +10,7 @@
 #include "sll.h"
 #include "entity.h"
 #include "point.h"
+#include "term.h"
 
 #define MAT_SIZE         11
 #define GAME_ICON_EMPTY  ". "
@@ -21,6 +22,7 @@
 #define LOWER_RIGHT      "┘"
 #define HORIZONTAL       "──"
 #define VERTICAL         "│"
+#define OFFSET           2
 
 typedef struct game_tile_t
 {

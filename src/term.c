@@ -30,6 +30,7 @@ int term_uncook (void)
     int flags = fcntl(STDIN_FILENO, F_GETFL, 0);
     fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);
 
+    term_hide_cursor();
 EXIT:
     return (status);
 }
@@ -47,11 +48,37 @@ int term_cook (void)
     // set stdin back to blocking
     int flags = fcntl(STDIN_FILENO, F_GETFL, 0);
     fcntl(STDIN_FILENO, F_SETFL, flags & ~O_NONBLOCK);
+    term_show_cursor();
 
     status = 0;
 
 EXIT:
     return (status);
+}
+
+void term_clear (void)
+{
+    (void)fprintf(stdout, "\033[H\033[J");
+    fflush(stdout);
+}
+
+// starts at 1 for both x and y
+void term_gotoxy (int x, int y)
+{
+    (void)fprintf(stdout, "\033[%d;%dH", y, x);
+    fflush(stdout);
+}
+
+void term_hide_cursor (void)
+{
+    (void)fprintf(stdout, "\033[?25l");
+    fflush(stdout);
+}
+
+void term_show_cursor (void)
+{
+    (void)fprintf(stdout, "\033[?25h");
+    fflush(stdout);
 }
 
 /*** end of file ***/
