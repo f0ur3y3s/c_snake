@@ -13,6 +13,24 @@ static void game_place_tile (game_t * p_game, point_t pos, entity_type_t type)
     }
 
     p_game->p_tile_matrix[(pos.y * p_game->game_size) + pos.x].tile_type = type;
+    term_gotoxy(pos.x * OFFSET + 1, pos.y + 1);
+
+    switch(type)
+    {
+        case EMPTY:
+            (void)fprintf(stdout, GAME_ICON_EMPTY);
+            break;
+        case PLAYER:
+            (void)fprintf(stdout, GAME_ICON_PLAYER);
+            break;
+        case FOOD:
+            (void)fprintf(stdout, GAME_ICON_FOOD);
+            break;
+        default:
+            break;
+    }
+
+    fflush(stdout);
 
 EXIT:
     return;
