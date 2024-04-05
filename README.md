@@ -1,6 +1,9 @@
 # Cnake - A Snake clone in C
 
-![Cnake in action](./img/c_snake.png)
+<div align="center">
+<img src=https://github.com/incub4t0r/c_snake/blob/master/img/c_snake.png width=300>
+</div>
+
 - [Cnake - A Snake clone in C](#cnake---a-snake-clone-in-c)
   - [Introduction](#introduction)
   - [Technical Details](#technical-details)
