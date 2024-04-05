@@ -15,7 +15,7 @@ static void game_place_tile (game_t * p_game, point_t pos, entity_type_t type)
     p_game->p_tile_matrix[(pos.y * p_game->game_size) + pos.x].tile_type = type;
     term_gotoxy(pos.x * OFFSET + 1, pos.y + 1);
 
-    switch(type)
+    switch (type)
     {
         case EMPTY:
             (void)fprintf(stdout, GAME_ICON_EMPTY);
@@ -199,10 +199,6 @@ game_t * game_init (size_t game_size)
         game_add_entity(p_new_game, pos, g_zero, FOOD);
         game_place_tile(p_new_game, pos, FOOD);
     }
-    // pos.x = rand() % p_new_game->game_size;
-    // pos.y = rand() % p_new_game->game_size;
-    // game_add_entity(p_new_game, pos, g_zero, FOOD);
-    // game_place_tile(p_new_game, pos, FOOD);
 EXIT:
     return (p_new_game);
 }
@@ -317,6 +313,13 @@ EXIT:
     return;
 }
 
+void game_print_score (game_t * p_game)
+{
+    term_gotoxy(0, p_game->game_size + 2);
+    (void)fprintf(stdout, "Score: %d\n", p_game->score);
+    fflush(stdout);
+}
+
 bool game_tick (game_t * p_game)
 {
     bool           should_update = false;
@@ -378,8 +381,8 @@ bool game_tick (game_t * p_game)
         goto EXIT;
     }
 
-    for (size_t entity_idx = 0; entity_idx < p_game->p_entity_arr->size;
-         entity_idx++)
+    size_t entity_idx = 0;
+    for (; entity_idx < p_game->p_entity_arr->size; entity_idx++)
     {
         entity_t * p_entity
             = (entity_t *)dyn_arr_get(p_game->p_entity_arr, entity_idx);
@@ -398,14 +401,21 @@ bool game_tick (game_t * p_game)
                 game_place_tile(p_game, pos, FOOD);
             }
 
+            p_game
+                ->p_tile_matrix[(p_entity->pos.y * p_game->game_size)
+                                + p_entity->pos.x]
+                .tile_type
+                = EMPTY;
+
             game_add_entity(p_game, p_snake_tail->pos, g_zero, PLAYER);
             game_place_tile(p_game, p_snake_tail->pos, PLAYER);
+            dyn_arr_remove(p_game->p_entity_arr, entity_idx);
             break;
         }
     }
 
     game_place_tile(p_game, p_snake_head->pos, PLAYER);
-
+    game_print_score(p_game);
     should_update = true;
 EXIT:
     return (should_update);
