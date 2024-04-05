@@ -38,6 +38,8 @@ static int game_add_entity (game_t *      p_game,
         goto EXIT;
     }
 
+    p_new_entity->score = 0;
+
     switch (type)
     {
         case PLAYER:;
@@ -46,9 +48,12 @@ static int game_add_entity (game_t *      p_game,
             p_new_entity->dir.y = p_next->dir.y;
             status = sll_prepend(p_game->p_snake, p_new_entity, false);
             break;
-        // case FOOD:
-        //     status = dyn_arr_append(p_game->p_bullet_arr, p_new_entity);
-        // break;
+        case FOOD:
+            p_new_entity->score = 1;
+            p_new_entity->pos.x = pos.x;
+            p_new_entity->pos.y = pos.y;
+            status = dyn_arr_append(p_game->p_entity_arr, p_new_entity);
+            break;
         default:
             break;
     }
@@ -60,6 +65,29 @@ static int game_add_entity (game_t *      p_game,
         p_new_entity = NULL;
         status       = -1;
         goto EXIT;
+    }
+
+EXIT:
+    return (status);
+}
+
+static int snake_cmp_f (void * p_pos1, void * p_pos2)
+{
+    int status = -1;
+
+    if ((NULL == p_pos1) || (NULL == p_pos2))
+    {
+        goto EXIT;
+    }
+
+    point_t * p_point1 = (point_t *)p_pos1;
+    point_t * p_point2 = (point_t *)p_pos2;
+
+    if ((p_point1->x == p_point2->x) && (p_point1->y == p_point2->y))
+    {
+        printf("Snake collision\n");
+        exit(1);
+        status = 0;
     }
 
 EXIT:
@@ -95,7 +123,7 @@ game_t * game_init (size_t game_size)
         goto EXIT;
     }
 
-    p_new_game->p_snake = sll_create(NULL);
+    p_new_game->p_snake = sll_create(snake_cmp_f);
 
     if (NULL == p_new_game->p_snake)
     {
@@ -128,15 +156,11 @@ game_t * game_init (size_t game_size)
         }
     }
 
-    // point_t pos
-    //     = { .x = p_new_game->game_size / 2, .y = p_new_game->game_size / 2 };
-    point_t pos = { .x = 2, .y = 0 };
+    point_t pos = { .x = 2, .y = game_size / 2 };
     point_t dir = { .x = 1, .y = 0 };
 
     entity_t * p_snake_head = entity_create(pos, dir, PLAYER);
     sll_prepend(p_new_game->p_snake, p_snake_head, false);
-
-    // game_add_entity(p_new_game, pos, dir, PLAYER);
     game_place_tile(p_new_game, pos, PLAYER);
 
     pos.x -= 1;
@@ -150,9 +174,17 @@ game_t * game_init (size_t game_size)
     (void)gettimeofday(&g_time_last, NULL);
     srand(time(NULL));
 
+    for (int start_food = 0; start_food < 5; start_food++)
+    {
+        pos.x = rand() % p_new_game->game_size;
+        pos.y = rand() % p_new_game->game_size;
+        game_add_entity(p_new_game, pos, g_zero, FOOD);
+        game_place_tile(p_new_game, pos, FOOD);
+    }
     // pos.x = rand() % p_new_game->game_size;
     // pos.y = rand() % p_new_game->game_size;
     // game_add_entity(p_new_game, pos, g_zero, FOOD);
+    // game_place_tile(p_new_game, pos, FOOD);
 EXIT:
     return (p_new_game);
 }
@@ -276,76 +308,86 @@ bool game_tick (game_t * p_game)
     uint64_t delta_time = (time_now.tv_sec - g_time_last.tv_sec) * 1000000
                           + time_now.tv_usec - g_time_last.tv_usec;
 
-    if (1000000 > delta_time)
+    if (100000 > delta_time)
     {
         goto EXIT;
     }
-    else
+
+    g_time_last = time_now;
+
+    // check if move will cause collision with itself
+    entity_t * p_snake_head = (entity_t *)p_game->p_snake->p_tail->p_data;
+
+    point_t new_pos = { .x = p_snake_head->pos.x + p_snake_head->dir.x,
+                        .y = p_snake_head->pos.y + p_snake_head->dir.y };
+    // check if snake head is colliding within itself
+    if (sll_is_in(p_game->p_snake, (const void *)&(new_pos)))
     {
-        g_time_last = time_now;
+        goto EXIT;
+    }
 
+    entity_t * p_snake_tail = (entity_t *)p_game->p_snake->p_head->p_data;
+    // p_head is the tail of the snake
+    game_place_tile(p_game, p_snake_tail->pos, EMPTY);
 
-        // update the rest of the snake sections
+    sll_node_t * p_temp_node = p_game->p_snake->p_head;
 
-        entity_t * p_snake_tail = (entity_t *)p_game->p_snake->p_head->p_data;
-        game_place_tile(p_game, p_snake_tail->pos, EMPTY);
-
-        sll_node_t * p_temp_node = p_game->p_snake->p_head;
-
-        while (NULL != p_temp_node)
+    while (NULL != p_temp_node)
+    {
+        // the section before the head
+        if (NULL != p_temp_node->p_next)
         {
-            // the section before the head
-            if (NULL != p_temp_node->p_next)
-            {
-                ((entity_t *)p_temp_node->p_data)->dir.x = ((entity_t *)p_temp_node->p_next->p_data)->dir.x;
-                ((entity_t *)p_temp_node->p_data)->dir.x = ((entity_t *)p_temp_node->p_next->p_data)->dir.x;
-                ((entity_t *)p_temp_node->p_data)->dir.x = ((entity_t *)p_temp_node->p_next->p_data)->dir.x;
-                ((entity_t *)p_temp_node->p_data)->dir.x = ((entity_t *)p_temp_node->p_next->p_data)->dir.x;
-            }
+            ((entity_t *)p_temp_node->p_data)->dir.x
+                = ((entity_t *)p_temp_node->p_next->p_data)->dir.x;
+            ((entity_t *)p_temp_node->p_data)->dir.y
+                = ((entity_t *)p_temp_node->p_next->p_data)->dir.y;
+            ((entity_t *)p_temp_node->p_data)->pos.x
+                = ((entity_t *)p_temp_node->p_next->p_data)->pos.x;
+            ((entity_t *)p_temp_node->p_data)->pos.y
+                = ((entity_t *)p_temp_node->p_next->p_data)->pos.y;
         }
 
-        entity_t * p_snake_head = (entity_t *)p_game->p_snake->p_tail->p_data;
-        p_snake_head->pos.x += p_snake_head->dir.x;
-        p_snake_head->pos.y += p_snake_head->dir.y;
-        game_place_tile(p_game, p_snake_head->pos, PLAYER);
-
-
-        // sll_node_t * p_temp_node = p_game->p_snake->p_head;
-        // p_head is the tail of the snake
-
-        // while (NULL != p_temp_node)
-        // {
-        //     entity_t * p_snake_entity = (entity_t *)p_temp_node->p_data;
-        //     printf("%d, %d %d, %d | ",
-        //            p_snake_entity->pos.x,
-        //            p_snake_entity->pos.y,
-        //            p_snake_entity->dir.x,
-        //            p_snake_entity->dir.y);
-
-        //     game_place_tile(p_game, p_snake_entity->pos, EMPTY);
-
-        //     game_place_tile(p_game, p_snake_entity->pos, PLAYER);
-
-        //     // if (NULL != p_temp_node->p_next)
-        //     // {
-        //     //     game_place_tile(p_game, p_snake_entity->pos, EMPTY);
-
-        //     //     entity_t * p_snake_next
-        //     //         = (entity_t *)p_temp_node->p_next->p_data;
-        //     //     p_snake_entity->pos.x += p_snake_next->dir.x;
-        //     //     p_snake_entity->pos.y += p_snake_next->dir.y;
-        //     // }
-        //     // else
-        //     // {
-        //     //     p_snake_entity->pos.x += p_snake_entity->dir.x;
-        //     //     p_snake_entity->pos.y += p_snake_entity->dir.y;
-
-        //     //     game_place_tile(p_game, p_snake_entity->pos, PLAYER);
-        //     // }
-
-        //     p_temp_node = p_temp_node->p_next;
-        // }
+        p_temp_node = p_temp_node->p_next;
     }
+
+    p_snake_head->pos.x += p_snake_head->dir.x;
+    p_snake_head->pos.y += p_snake_head->dir.y;
+
+    if (0 > p_snake_head->pos.x || p_game->game_size <= p_snake_head->pos.x
+        || 0 > p_snake_head->pos.y || p_game->game_size <= p_snake_head->pos.y)
+    {
+        // gb_run = false;
+        goto EXIT;
+    }
+
+    for (size_t entity_idx = 0; entity_idx < p_game->p_entity_arr->size;
+         entity_idx++)
+    {
+        entity_t * p_entity
+            = (entity_t *)dyn_arr_get(p_game->p_entity_arr, entity_idx);
+
+        if (p_snake_head->pos.x == p_entity->pos.x
+            && p_snake_head->pos.y == p_entity->pos.y)
+        {
+            p_entity->is_deletable = true;
+            p_game->score += p_entity->score;
+
+            if (FOOD == p_entity->entity_type)
+            {
+                point_t pos = { .x = rand() % p_game->game_size,
+                                .y = rand() % p_game->game_size };
+                game_add_entity(p_game, pos, g_zero, FOOD);
+                game_place_tile(p_game, pos, FOOD);
+            }
+
+            game_add_entity(p_game, p_snake_tail->pos, g_zero, PLAYER);
+            game_place_tile(p_game, p_snake_tail->pos, PLAYER);
+            break;
+        }
+    }
+
+    game_place_tile(p_game, p_snake_head->pos, PLAYER);
+
     should_update = true;
 EXIT:
     return (should_update);

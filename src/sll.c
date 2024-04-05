@@ -12,7 +12,7 @@
  *
  */
 
-#include "sll.h"
+#include "../include/sll.h"
 
 static sll_node_t * sll_node_create (void * p_data);
 
@@ -26,7 +26,8 @@ static sll_node_t * sll_node_create (void * p_data);
  * @retval Pointer to new sll on success
  * @retval NULL on failure
  */
-sll_t * sll_create (int (*cmp_func)(void *, void *))
+// sll_t * sll_create (int (*cmp_func)(void *, void *))
+sll_t * sll_create (sll_cmp_f cmp_func)
 {
     sll_t * p_new_sll = NULL;
 

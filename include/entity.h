@@ -18,6 +18,7 @@ typedef struct entity_t
 {
     point_t       pos;
     point_t       dir;
+    int           score;
     entity_type_t entity_type;
     bool          is_deletable;
 } entity_t;

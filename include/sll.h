@@ -26,13 +26,16 @@ typedef struct sll_node_t
     struct sll_node_t * p_next;
 } sll_node_t;
 
+typedef int (*sll_cmp_f)(void *, void *);
+
 typedef struct sll_t
 {
     sll_node_t *     p_head;
     sll_node_t *     p_tail;
     size_t           size;
     pthread_rwlock_t sll_rwlock;
-    int (*node_cmp_func)(void *, void *);
+    sll_cmp_f        node_cmp_func;
+    // int (*node_cmp_func)(void *, void *);
 } sll_t;
 
 typedef enum sll_error_t
@@ -46,7 +49,8 @@ typedef enum sll_error_t
     SLL_RWLOCK,
 } sll_error_t;
 
-sll_t * sll_create (int (*cmp_func)(void *, void *));
+// sll_t * sll_create (int (*cmp_func)(void *, void *));
+sll_t * sll_create (sll_cmp_f cmp_func);
 int     sll_destroy (sll_t ** pp_sll);
 int     sll_prepend (sll_t * p_sll, void * p_data, const bool b_is_locked);
 int     sll_append (sll_t * p_sll, void * p_data, const bool b_is_locked);

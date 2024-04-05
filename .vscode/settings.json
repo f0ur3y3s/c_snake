@@ -2,6 +2,7 @@
     "files.associations": {
         "entity.h": "c",
         "game.h": "c",
-        "stdbool.h": "c"
+        "stdbool.h": "c",
+        "sll.h": "c"
     }
 }
