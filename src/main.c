@@ -1,7 +1,5 @@
 #include "../include/main.h"
 
-static _Atomic bool gb_run = true;
-
 int main (void)
 {
     int status = term_uncook();
@@ -24,7 +22,8 @@ int main (void)
     // system("clear");
     // game_print_tiles(p_game);
 
-    for (;;)
+    // for (;;)
+    while (game_should_run())
     {
         game_tick(p_game);
         // if (game_tick(p_game))

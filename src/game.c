@@ -3,6 +3,7 @@
 static struct timeval g_time_last = { 0 };
 entity_t *            gp_snake    = NULL;
 point_t               g_zero      = { 0 };
+static _Atomic bool   game_run    = true;
 
 static void game_place_tile (game_t * p_game, point_t pos, entity_type_t type)
 {
@@ -103,8 +104,6 @@ static int snake_cmp_f (void * p_pos1, void * p_pos2)
 
     if ((p_point1->x == p_point2->x) && (p_point1->y == p_point2->y))
     {
-        printf("Snake collision\n");
-        exit(1);
         status = 0;
     }
 
@@ -336,14 +335,15 @@ bool game_tick (game_t * p_game)
 
     g_time_last = time_now;
 
-    // check if move will cause collision with itself
     entity_t * p_snake_head = (entity_t *)p_game->p_snake->p_tail->p_data;
 
     point_t new_pos = { .x = p_snake_head->pos.x + p_snake_head->dir.x,
                         .y = p_snake_head->pos.y + p_snake_head->dir.y };
     // check if snake head is colliding within itself
-    if (sll_is_in(p_game->p_snake, (const void *)&(new_pos)))
+    if (sll_is_in(p_game->p_snake, &(new_pos)))
     {
+        printf("You tried eating yourself!!!\n");
+        game_run = false;
         goto EXIT;
     }
 
@@ -377,11 +377,12 @@ bool game_tick (game_t * p_game)
     if (0 > p_snake_head->pos.x || p_game->game_size <= p_snake_head->pos.x
         || 0 > p_snake_head->pos.y || p_game->game_size <= p_snake_head->pos.y)
     {
-        // gb_run = false;
+        game_run = false;
         goto EXIT;
     }
 
     size_t entity_idx = 0;
+
     for (; entity_idx < p_game->p_entity_arr->size; entity_idx++)
     {
         entity_t * p_entity
@@ -417,8 +418,14 @@ bool game_tick (game_t * p_game)
     game_place_tile(p_game, p_snake_head->pos, PLAYER);
     game_print_score(p_game);
     should_update = true;
+
 EXIT:
     return (should_update);
+}
+
+bool game_should_run(void)
+{
+    return (game_run);
 }
 
 /*** end of file ***/

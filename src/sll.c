@@ -641,7 +641,7 @@ EXIT:
  * @retval true if data is in the singly linked list
  * @retval false if data is not in the singly linked list
  */
-bool sll_is_in (sll_t * p_sll, const void * p_data)
+bool sll_is_in (sll_t * p_sll, void * p_data)
 {
     bool b_is_in = false;
 
@@ -662,7 +662,7 @@ bool sll_is_in (sll_t * p_sll, const void * p_data)
 
     while (NULL != p_current)
     {
-        if (0 == p_sll->node_cmp_func(&(p_current->p_data), &p_data))
+        if (0 == p_sll->node_cmp_func((p_current->p_data), p_data))
         {
             b_is_in = true;
             break;

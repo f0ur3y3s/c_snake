@@ -59,7 +59,7 @@ int     sll_preremove (sll_t * p_sll, const bool b_is_locked);
 int     sll_postremove (sll_t * p_sll, const bool b_is_locked);
 int     sll_remove (sll_t * p_sll, const size_t index);
 void *  sll_get (sll_t * p_sll, const size_t index);
-bool    sll_is_in (sll_t * p_sll, const void * p_data);
+bool    sll_is_in (sll_t * p_sll, void * p_data);
 bool    sll_is_empty (sll_t * p_sll);
 size_t  sll_size (sll_t * p_sll);
 

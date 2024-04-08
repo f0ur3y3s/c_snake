@@ -43,6 +43,7 @@ void     game_destroy (game_t ** pp_game);
 void     game_print_tiles (game_t * p_game);
 void     game_turn_player (game_t * p_game, point_t dir);
 bool     game_tick (game_t * p_game);
+bool     game_should_run (void);
 
 #endif // GAME_H
 
